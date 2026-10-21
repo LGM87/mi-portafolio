@@ -579,4 +579,68 @@ document.addEventListener('click',function(ev){var a=ev.target.closest('a[href^=
  var v=view(a.getAttribute('href'));if(v){ev.preventDefault();show(v)}});
 window.addEventListener('hashchange',function(){var v=view(location.hash);if(v)show(v)});
 show(view(location.hash)||'inicio');
-</script></body></html>
+</script><!-- Biblioteca oficial de Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Configuración de la conexión -->
+<script>
+  const SUPABASE_URL = "https://gzffngwqxcuhjkmklydg.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_2djiPpZQj7ieHPpehAtW3w_arjJQYeT";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+async function cargarContenido() {
+  const { data, error } = await supabaseClient
+    .from("portfolio_content")
+    .select("content")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.error("No se pudo cargar el contenido:", error);
+    return null;
+  }
+
+  return data.content;
+}
+
+async function iniciarSesion(email, password) {
+  const { data, error } = await supabaseClient.auth
+    .signInWithPassword({ email, password });
+
+  if (error) {
+    alert("No se pudo iniciar sesión. Revisa tus datos.");
+    return false;
+  }
+
+  return Boolean(data.session);
+}
+
+async function guardarContenido(contenidoEditado) {
+  const { data: { user }, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Debes iniciar sesión para guardar.");
+  }
+
+  const { error } = await supabaseClient
+    .from("portfolio_content")
+    .update({
+      content: contenidoEditado,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", 1);
+
+  if (error) {
+    throw error;
+  }
+}
+</script>
+
+</body>
+</html>
